@@ -4,6 +4,8 @@ import { attachHlsStream } from "@/lib/player";
 type Props = {
   src: string;
   autoPlay?: boolean;
+  initialTime?: number;
+  onProgress?: (currentTime: number, duration: number) => void;
 };
 
 function formatTime(sec: number): string {
