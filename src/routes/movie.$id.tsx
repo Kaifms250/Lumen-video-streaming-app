@@ -112,7 +112,7 @@ function MovieDetails() {
               <h2 className="text-xl font-bold">About</h2>
               <p className="mt-3 text-muted-foreground">{movie.description}</p>
               <div className="mt-6 flex flex-wrap gap-2">
-                {movie.genres.map((g) => (
+                {movie.genres.map((g: string) => (
                   <Link
                     key={g}
                     to="/browse"
