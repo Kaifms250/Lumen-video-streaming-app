@@ -37,7 +37,7 @@ function BrowsePage() {
       return ids.map((id) => getMovieById(id)).filter((m): m is NonNullable<typeof m> => !!m);
     }
     if (genre) {
-      return movies.filter((m) => m.genres.includes(genre as never));
+      return movies.filter((m) => m.genres.includes(genre as (typeof m.genres)[number]));
     }
     return movies;
   }, [q, genre, ids]);
