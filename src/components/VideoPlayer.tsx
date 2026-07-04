@@ -4,6 +4,8 @@ import { attachHlsStream } from "@/lib/player";
 type Props = {
   src: string;
   autoPlay?: boolean;
+  initialTime?: number;
+  onProgress?: (currentTime: number, duration: number) => void;
 };
 
 function formatTime(sec: number): string {
@@ -13,7 +15,7 @@ function formatTime(sec: number): string {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
-export function VideoPlayer({ src, autoPlay = true }: Props) {
+export function VideoPlayer({ src, autoPlay = true, initialTime, onProgress }: Props) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   const [loading, setLoading] = useState(true);
@@ -34,6 +36,10 @@ export function VideoPlayer({ src, autoPlay = true }: Props) {
     const attached = attachHlsStream(video, src, {
       onReady: () => {
         setLoading(false);
+        // Resume from previous progress if provided.
+        if (initialTime && initialTime > 3 && isFinite(initialTime)) {
+          try { video.currentTime = initialTime; } catch { /* ignore */ }
+        }
         if (autoPlay) {
           // Autoplay may be blocked by browser policy — muted improves odds.
           video.muted = true;
@@ -58,7 +64,16 @@ export function VideoPlayer({ src, autoPlay = true }: Props) {
     const video = videoRef.current;
     if (!video) return;
 
-    const onTime = () => setCurrentTime(video.currentTime);
+    let last = 0;
+    const onTime = () => {
+      setCurrentTime(video.currentTime);
+      // Throttle progress callback to ~1/sec.
+      const now = Date.now();
+      if (onProgress && now - last > 1000) {
+        last = now;
+        onProgress(video.currentTime, video.duration);
+      }
+    };
     const onDur = () => setDuration(video.duration);
     const onPlay = () => setPlaying(true);
     const onPause = () => setPlaying(false);
@@ -85,7 +100,7 @@ export function VideoPlayer({ src, autoPlay = true }: Props) {
       video.removeEventListener("playing", onPlaying);
       video.removeEventListener("error", onErr);
     };
-  }, []);
+  }, [onProgress]);
 
   const togglePlay = () => {
     const v = videoRef.current;
