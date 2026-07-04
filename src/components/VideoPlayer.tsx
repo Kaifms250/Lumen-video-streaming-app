@@ -64,7 +64,16 @@ export function VideoPlayer({ src, autoPlay = true, initialTime, onProgress }: P
     const video = videoRef.current;
     if (!video) return;
 
-    const onTime = () => setCurrentTime(video.currentTime);
+    let last = 0;
+    const onTime = () => {
+      setCurrentTime(video.currentTime);
+      // Throttle progress callback to ~1/sec.
+      const now = Date.now();
+      if (onProgress && now - last > 1000) {
+        last = now;
+        onProgress(video.currentTime, video.duration);
+      }
+    };
     const onDur = () => setDuration(video.duration);
     const onPlay = () => setPlaying(true);
     const onPause = () => setPlaying(false);
