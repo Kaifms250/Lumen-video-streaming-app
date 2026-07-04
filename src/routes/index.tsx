@@ -1,24 +1,23 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { VideoPlayer } from "@/components/VideoPlayer";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
+const SAMPLE_HLS = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8";
+
 export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "HLS Streaming Demo" },
+      { name: "description", content: "Minimal HLS video streaming proof of concept using hls.js." },
+    ],
+  }),
   component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
 function Index() {
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
+    <main style={{ minHeight: "100vh", padding: 16, fontFamily: "system-ui, sans-serif" }}>
+      <h1 style={{ textAlign: "center" }}>HLS Streaming Demo</h1>
+      <VideoPlayer src={SAMPLE_HLS} autoPlay />
+    </main>
   );
 }
