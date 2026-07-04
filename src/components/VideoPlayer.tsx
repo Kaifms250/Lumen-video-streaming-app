@@ -36,6 +36,10 @@ export function VideoPlayer({ src, autoPlay = true, initialTime, onProgress }: P
     const attached = attachHlsStream(video, src, {
       onReady: () => {
         setLoading(false);
+        // Resume from previous progress if provided.
+        if (initialTime && initialTime > 3 && isFinite(initialTime)) {
+          try { video.currentTime = initialTime; } catch { /* ignore */ }
+        }
         if (autoPlay) {
           // Autoplay may be blocked by browser policy — muted improves odds.
           video.muted = true;
