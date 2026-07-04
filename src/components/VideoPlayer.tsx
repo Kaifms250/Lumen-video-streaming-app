@@ -15,7 +15,7 @@ function formatTime(sec: number): string {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
-export function VideoPlayer({ src, autoPlay = true }: Props) {
+export function VideoPlayer({ src, autoPlay = true, initialTime, onProgress }: Props) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   const [loading, setLoading] = useState(true);
