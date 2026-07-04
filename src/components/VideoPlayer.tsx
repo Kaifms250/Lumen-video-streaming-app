@@ -100,7 +100,7 @@ export function VideoPlayer({ src, autoPlay = true, initialTime, onProgress }: P
       video.removeEventListener("playing", onPlaying);
       video.removeEventListener("error", onErr);
     };
-  }, []);
+  }, [onProgress]);
 
   const togglePlay = () => {
     const v = videoRef.current;
