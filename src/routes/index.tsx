@@ -51,7 +51,11 @@ function LandingPage() {
           transition={{ duration: 0.5 }}
           className="-mt-16 space-y-2"
         >
-          {continueRow.length > 0 && <MovieRow title="Continue Watching" movies={continueRow} />}
+          <MovieRow
+            title="Continue Watching"
+            movies={continueRow}
+            emptyLabel="No videos in progress."
+          />
           {myListRow.length > 0 && <MovieRow title="My List" movies={myListRow} />}
           <MovieRow title="Trending Now" movies={trending} />
           <MovieRow title="New Releases" movies={newReleases} />
