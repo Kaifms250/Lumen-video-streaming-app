@@ -7,9 +7,10 @@ type Props = {
   title: string;
   movies: Movie[];
   emptyLabel?: string;
+  stickyTitle?: boolean;
 };
 
-export function MovieRow({ title, movies, emptyLabel }: Props) {
+export function MovieRow({ title, movies, emptyLabel, stickyTitle = false }: Props) {
   const scroller = useRef<HTMLDivElement>(null);
 
   const scroll = (dir: 1 | -1) => {
@@ -22,7 +23,7 @@ export function MovieRow({ title, movies, emptyLabel }: Props) {
     if (!emptyLabel) return null;
     return (
       <section className="py-4">
-        <h2 className="mb-3 px-4 text-lg font-bold sm:px-8 md:text-xl">{title}</h2>
+        <h2 className={`mb-3 px-4 text-lg font-bold sm:px-8 md:text-xl ${stickyTitle ? "sticky top-16 z-20 bg-background/95 py-2 backdrop-blur" : ""}`}>{title}</h2>
         <p className="px-4 text-sm text-muted-foreground sm:px-8">{emptyLabel}</p>
       </section>
     );
@@ -30,7 +31,7 @@ export function MovieRow({ title, movies, emptyLabel }: Props) {
 
   return (
     <section className="group/row py-4">
-      <h2 className="mb-3 px-4 text-lg font-bold sm:px-8 md:text-xl">{title}</h2>
+      <h2 className={`mb-3 px-4 text-lg font-bold sm:px-8 md:text-xl ${stickyTitle ? "sticky top-16 z-20 bg-background/95 py-2 backdrop-blur" : ""}`}>{title}</h2>
       <div className="relative">
         <button
           type="button"

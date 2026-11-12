@@ -55,6 +55,7 @@ function LandingPage() {
             title="Continue Watching"
             movies={continueRow}
             emptyLabel="No videos in progress."
+            stickyTitle
           />
           {myListRow.length > 0 && <MovieRow title="My List" movies={myListRow} />}
           <MovieRow title="Trending Now" movies={trending} />
