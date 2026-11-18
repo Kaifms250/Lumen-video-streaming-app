@@ -1,5 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { attachHlsStream } from "@/lib/player";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { attachHlsStream, type AttachedPlayer, type QualityOption } from "@/lib/player";
 
 type Props = {
   src: string;
@@ -17,6 +25,7 @@ function formatTime(sec: number): string {
 
 export function VideoPlayer({ src, autoPlay = true, initialTime, onProgress }: Props) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const playerRef = useRef<AttachedPlayer | null>(null);
 
   const [loading, setLoading] = useState(true);
   const [buffering, setBuffering] = useState(false);
@@ -24,6 +33,10 @@ export function VideoPlayer({ src, autoPlay = true, initialTime, onProgress }: P
   const [playing, setPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [qualityOptions, setQualityOptions] = useState<QualityOption[]>([]);
+  const [selectedQuality, setSelectedQuality] = useState("auto");
+  const [activeResolution, setActiveResolution] = useState<number | null>(null);
+  const [qualityError, setQualityError] = useState<string | null>(null);
 
   // Attach HLS stream on mount / when src changes. Cleanup on unmount.
   useEffect(() => {
@@ -32,8 +45,18 @@ export function VideoPlayer({ src, autoPlay = true, initialTime, onProgress }: P
 
     setLoading(true);
     setError(null);
+    setQualityOptions([]);
+    setSelectedQuality("auto");
+    setActiveResolution(null);
+    setQualityError(null);
 
     const attached = attachHlsStream(video, src, {
+      onQualityLevels: setQualityOptions,
+      onResolutionChange: setActiveResolution,
+      onQualityError: (message) => {
+        setSelectedQuality("auto");
+        setQualityError(message);
+      },
       onReady: () => {
         setLoading(false);
         // Resume from previous progress if provided.
@@ -53,8 +76,10 @@ export function VideoPlayer({ src, autoPlay = true, initialTime, onProgress }: P
         setLoading(false);
       },
     });
+    playerRef.current = attached;
 
     return () => {
+      if (playerRef.current === attached) playerRef.current = null;
       attached.destroy();
     };
   }, [src, autoPlay]);
@@ -122,6 +147,17 @@ export function VideoPlayer({ src, autoPlay = true, initialTime, onProgress }: P
     else v.requestFullscreen?.();
   };
 
+  const selectQuality = (value: string) => {
+    const levelIndex = value === "auto" ? null : Number(value);
+    if (playerRef.current?.selectQuality(levelIndex)) {
+      setSelectedQuality(value);
+      setQualityError(null);
+    } else {
+      setSelectedQuality("auto");
+      setQualityError("That quality is no longer available. Playback returned to Auto.");
+    }
+  };
+
   return (
     <div style={{ width: "100%", maxWidth: 960, margin: "0 auto" }}>
       <div style={{ position: "relative", width: "100%", background: "#000" }}>
@@ -139,14 +175,20 @@ export function VideoPlayer({ src, autoPlay = true, initialTime, onProgress }: P
           <div style={overlayStyle}>Buffering…</div>
         )}
         {error && <div style={overlayStyle}>{error}</div>}
+
+        {!error && activeResolution && (
+          <div className="absolute right-3 top-3 rounded-sm bg-background/80 px-2 py-1 text-xs font-semibold text-foreground backdrop-blur-sm">
+            {activeResolution}p
+          </div>
+        )}
       </div>
 
       {!error && (
-        <div style={{ display: "flex", gap: 8, alignItems: "center", padding: 8, flexWrap: "wrap" }}>
-          <button onClick={togglePlay} disabled={loading}>
+        <div className="flex flex-wrap items-center gap-2 p-2">
+          <Button variant="ghost" size="sm" onClick={togglePlay} disabled={loading}>
             {playing ? "Pause" : "Play"}
-          </button>
-          <span style={{ fontVariantNumeric: "tabular-nums" }}>
+          </Button>
+          <span className="text-sm tabular-nums text-foreground">
             {formatTime(currentTime)} / {formatTime(duration)}
           </span>
           <input
@@ -156,9 +198,29 @@ export function VideoPlayer({ src, autoPlay = true, initialTime, onProgress }: P
             step={0.1}
             value={currentTime}
             onChange={onSeek}
-            style={{ flex: 1, minWidth: 120 }}
+            aria-label="Seek video"
+            className="min-w-[120px] flex-1 accent-primary"
           />
-          <button onClick={toggleFullscreen}>Fullscreen</button>
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="whitespace-nowrap text-xs text-muted-foreground">
+              {activeResolution ? `Now playing ${activeResolution}p` : "Quality"}
+            </span>
+            <Select value={selectedQuality} onValueChange={selectQuality} disabled={qualityOptions.length === 0}>
+              <SelectTrigger className="h-8 w-[112px]" aria-label="Video quality">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="auto">Auto</SelectItem>
+                {qualityOptions.map((quality) => (
+                  <SelectItem key={`${quality.height}-${quality.index}`} value={String(quality.index)}>
+                    {quality.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <Button variant="ghost" size="sm" onClick={toggleFullscreen}>Fullscreen</Button>
+          {qualityError && <span role="status" className="w-full text-xs text-destructive">{qualityError}</span>}
         </div>
       )}
     </div>
