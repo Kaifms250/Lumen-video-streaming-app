@@ -8,3 +8,6 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+## Media delivery
+- Resolve catalog manifests and artwork from `VITE_MEDIA_CDN_BASE_URL` using stable per-title paths; retain public demo fallbacks until matching CDN assets are uploaded, and never expose storage credentials in browser code.
